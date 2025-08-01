@@ -2,7 +2,7 @@ import LogoImage from "@/assets/icons/icon.png";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../contexts/ThemeContext";
 
-export default function Logo() {
+export function MainLogo() {
   const { theme } = useTheme();
 
   return (
@@ -19,6 +19,23 @@ export default function Logo() {
   );
 }
 
+export function Logo() {
+  const { theme } = useTheme();
+
+  return (
+    <View style={styles.miniLogoContainer}>
+      <Image
+        source={LogoImage}
+        style={{ width: 35, height: 35 }}
+        resizeMode="contain"
+      />
+      <Text style={[styles.miniLogoText, { color: theme.colors.text }]}>
+        Dastavez AI
+      </Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   logoContainer: {
     marginTop: 40,
@@ -27,19 +44,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  logoIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoEmoji: {
-    fontSize: 24,
-  },
   logoText: {
     marginTop: -10,
     fontSize: 20,
     fontWeight: "700",
+  },
+  miniLogoContainer: {
+    marginTop: 48,
+    marginLeft: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  miniLogoText: {
+    marginLeft: 2,
+    fontSize: 19,
+    fontWeight: "600",
   },
 });

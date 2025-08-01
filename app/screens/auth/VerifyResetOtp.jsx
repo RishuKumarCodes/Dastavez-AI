@@ -9,15 +9,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Logo from "../../components/Logo";
-import OTPInput from "../../components/OTPInput";
-import { useAuth } from "../../contexts/AuthContext";
-import { useTheme } from "../../contexts/ThemeContext";
+import { Logo } from "../../components/Logo.js";
+import OTPInput from "../../components/OTPInput.js";
+import { useAuth } from "../../contexts/AuthContext.js";
+import { useTheme } from "../../contexts/ThemeContext.js";
 import AuthStyles from "./AuthStyling.jsx";
 
-export default function CreatePasswordScreen({ navigation, route }) {
+export default function VerifyResetOtp({ navigation, route }) {
   const { theme } = useTheme();
-  const { createAccount } = useAuth();
+  const { resetPassword } = useAuth();
   const { email, firstName, lastName } = route.params || {};
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,20 +38,11 @@ export default function CreatePasswordScreen({ navigation, route }) {
 
     setLoading(true);
     try {
-      const result = await createAccount({
-        email,
-        firstName,
-        lastName,
-        password: newPassword,
-      });
-
-      if (result.success) {
-        // Account created successfully, user will be automatically logged in
-      } else {
-        Alert.alert("Error", result.error || "Failed to create account");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Something went wrong. Please try again.");
+      await resetPassword(email, otp, newPassword, confirmPassword);
+      Alert.alert("Success", "Your password has been reset.");
+      navigation.replace("Login", { email });
+    } catch (err) {
+      Alert.alert("Error", err.message);
     } finally {
       setLoading(false);
     }
@@ -81,7 +72,7 @@ export default function CreatePasswordScreen({ navigation, route }) {
               Create new password
             </Text>
 
-            <View style={AuthStyles.inputContainer}>
+            {/* <View style={AuthStyles.inputContainer}>
               <Text style={[AuthStyles.label, { color: theme.colors.text }]}>
                 First name
               </Text>
@@ -97,7 +88,7 @@ export default function CreatePasswordScreen({ navigation, route }) {
                 value={firstName}
                 editable={false}
               />
-            </View>
+            </View> */}
 
             <View style={AuthStyles.inputContainer}>
               <Text style={[AuthStyles.label, { color: theme.colors.text }]}>

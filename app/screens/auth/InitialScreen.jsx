@@ -1,7 +1,8 @@
 import AppleLogo from "@/assets/icons/AppleLogo.tsx";
 import GoogleLogo from "@/assets/icons/GoogleLogo.tsx";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -11,19 +12,54 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Logo from "../../components/Logo";
+import { MainLogo } from "../../components/Logo";
 import { useTheme } from "../../contexts/ThemeContext";
 import AuthStyles from "./AuthStyling.jsx";
 
 export default function InitialScreen({ navigation }) {
   const { theme } = useTheme();
-  const [email, setEmail] = useState("123example@gmail.com");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
-    navigation.navigate("CreateAccount", { email });
+  const handleContinue = async () => {
+    if (!email.trim()) {
+      Alert.alert("Validation", "Please enter your email.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(
+        "https://law-ai-7y05.onrender.com/auth/check-email",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim() }),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`Server responded with status ${res.status}`);
+      }
+
+      const { exists, message } = await res.json();
+      if (exists) {
+        navigation.navigate("Login", { email: email.trim() });
+      } else {
+        navigation.navigate("CreateAccount", { email: email.trim() });
+      }
+    } catch (err) {
+      console.error("Email check failed:", err);
+      Alert.alert(
+        "Network Error",
+        err.message || "Unable to check email. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!theme) return;
+  if (!theme) return null;
 
   return (
     <SafeAreaView
@@ -37,27 +73,14 @@ export default function InitialScreen({ navigation }) {
         style={AuthStyles.keyboardView}
       >
         <View style={AuthStyles.content}>
-          <Logo />
-
+          <MainLogo />
           <View
             style={[
-              {
-                backgroundColor: theme.colors.cardBackground,
-                borderRadius: 20,
-                margin: 20,
-                padding: 24,
-              },
+              AuthStyles.card,
+              { backgroundColor: theme.colors.cardBackground },
             ]}
           >
-            <Text
-              style={[
-                AuthStyles.title,
-                {
-                  color: theme.colors.text,
-                  marginBottom: 8,
-                },
-              ]}
-            >
+            <Text style={[AuthStyles.title, { color: theme.colors.text }]}>
               Login
             </Text>
 
@@ -76,6 +99,8 @@ export default function InitialScreen({ navigation }) {
                 ]}
                 value={email}
                 onChangeText={setEmail}
+                placeholder="Enter your email"
+                placeholderTextColor={theme.colors.textTertiary}
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
@@ -87,31 +112,27 @@ export default function InitialScreen({ navigation }) {
                 { backgroundColor: theme.colors.secondary },
               ]}
               onPress={handleContinue}
+              disabled={loading}
             >
-              <Text style={AuthStyles.primaryButtonText}>Continue →</Text>
+              <Text style={AuthStyles.primaryButtonText}>
+                {loading ? "Please wait…" : "Continue →"}
+              </Text>
             </TouchableOpacity>
 
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 8,
-                alignItems: "center",
-                marginVertical: 5,
-              }}
-            >
+            <View style={styles.orRow}>
               <View
                 style={[
-                  styles.orContainer,
+                  styles.line,
                   { borderTopColor: theme.colors.inputBackground },
                 ]}
-              ></View>
-              <Text style={[{ color: theme.colors.textSecondary }]}>Or</Text>
+              />
+              <Text style={{ color: theme.colors.textSecondary }}>Or</Text>
               <View
                 style={[
-                  styles.orLine,
+                  styles.line,
                   { borderTopColor: theme.colors.inputBackground },
                 ]}
-              ></View>
+              />
             </View>
 
             <TouchableOpacity
@@ -121,9 +142,7 @@ export default function InitialScreen({ navigation }) {
               ]}
             >
               <GoogleLogo />
-              <Text style={[styles.socialBtnTxt, { color: theme.colors.text }]}>
-                Continue with Google
-              </Text>
+              <Text style={styles.socialBtnTxt}>Continue with Google</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -133,9 +152,7 @@ export default function InitialScreen({ navigation }) {
               ]}
             >
               <AppleLogo color={theme.colors.text} />
-              <Text style={[styles.socialBtnTxt, { color: theme.colors.text }]}>
-                Continue with Apple
-              </Text>
+              <Text style={styles.socialBtnTxt}>Continue with Apple</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -143,16 +160,17 @@ export default function InitialScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
-  orContainer: {
-    flex: 1,
-    borderTopWidth: 1,
-    marginVertical: "auto",
+  orRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 12,
+    gap: 8,
   },
-  orLine: {
+  line: {
     flex: 1,
     borderTopWidth: 1,
-    marginVertical: "auto",
   },
   socialButton: {
     flexDirection: "row",
@@ -161,7 +179,7 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 1,
     borderRadius: 10,
-    padding: 10,
+    padding: 12,
     marginVertical: 4,
   },
   socialBtnTxt: {

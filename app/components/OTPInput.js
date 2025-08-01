@@ -35,7 +35,6 @@ export default function OTPInput({ value, onChange }) {
             styles.otpInput,
             {
               backgroundColor: theme.colors.inputBackground,
-              borderColor: theme.colors.border,
               color: theme.colors.text,
             },
           ]}
@@ -55,14 +54,12 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 10,
+    gap: 5,
     paddingHorizontal: 24,
-    marginVertical: 24,
   },
   otpInput: {
-    width: 48,
-    height: 56,
-    borderWidth: 1.5,
+    width: 38,
+    height: 50,
     borderRadius: 8,
     fontSize: 20,
     fontWeight: "600",

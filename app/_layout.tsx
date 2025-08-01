@@ -7,7 +7,7 @@ import AuthNavigator from "./navigation/AuthNavigator";
 import LoadingScreen from "./screens/LoadingScreen";
 
 function RootNavigator() {
-  const { user, loading } = useAuth();
+  const { token, loading } = useAuth();
 
   if (loading) {
     return <LoadingScreen />;
@@ -16,7 +16,7 @@ function RootNavigator() {
   return (
     <>
       <StatusBar style="auto" />
-      {user ? <AppNavigator /> : <AuthNavigator />}
+      {token ? <AppNavigator /> : <AuthNavigator />}
     </>
   );
 }

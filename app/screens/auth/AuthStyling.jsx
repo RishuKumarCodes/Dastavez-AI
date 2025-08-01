@@ -14,6 +14,7 @@ const AuthStyles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 20,
     padding: 24,
+    marginVertical: "auto",
   },
   title: {
     fontSize: 18,

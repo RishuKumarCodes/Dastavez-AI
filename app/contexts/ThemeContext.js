@@ -1,6 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Appearance } from "react-native";
+import {
+  getString,
+  removeItem,
+  setString,
+  StorageKeys,
+} from "../storage/ThemeSetting";
 
 const ThemeContext = createContext();
 
@@ -20,25 +25,12 @@ export const lightTheme = {
     secondary: "#fbbf24",
     text: "#1f2937",
     textSecondary: "#6b7280",
+    textTertiary: "#7894c7ff",
     border: "#a9b6ffff",
     inputBackground: "#B2CEFF",
     cardBackground: "#DBE8FF",
   },
 };
-
-// export const darkTheeeme = {
-//   colors: {
-//     background: "#1A1F2C",
-//     surface: "#DBE8FF",
-//     primary: "#3b82f6",
-//     secondary: "#c99000ff",
-//     text: "#ffffff",
-//     textSecondary: "#d1d5db",
-//     border: "#9AA9FF",
-//     inputBackground: "#B2CEFF",
-//     cardBackground: "#DBE8FF",
-//   },
-// };
 
 export const darkTheme = {
   colors: {
@@ -48,6 +40,7 @@ export const darkTheme = {
     secondary: "#c99000ff",
     text: "#ffffff",
     textSecondary: "#d1d5db",
+    textTertiary: "#5a71a0ff",
     border: "#737ebdff",
     inputBackground: "#203354",
     cardBackground: "#304B7A",
@@ -71,84 +64,57 @@ export const darkTheme = {
 //   },
 // };
 
-export default ThemeProvider = ({ children }) => {
+export default function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(Appearance.getColorScheme() === "dark");
   const [isSystemTheme, setIsSystemTheme] = useState(true);
 
   useEffect(() => {
-    loadTheme();
-    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-      // Only update if user is following system theme
+    async function load() {
+      const savedSystem = await getString(StorageKeys.IS_SYSTEM_THEME);
+      const followSystem = savedSystem == null ? true : JSON.parse(savedSystem);
+      setIsSystemTheme(followSystem);
+
+      if (followSystem) {
+        setIsDark(Appearance.getColorScheme() === "dark");
+      } else {
+        const savedTheme = await getString(StorageKeys.THEME);
+        setIsDark(savedTheme === "dark");
+      }
+    }
+    load();
+
+    const sub = Appearance.addChangeListener(({ colorScheme }) => {
       if (isSystemTheme) {
         setIsDark(colorScheme === "dark");
       }
     });
-    return () => subscription?.remove();
+    return () => sub.remove();
   }, [isSystemTheme]);
 
-  const loadTheme = async () => {
-    try {
-      const savedTheme = await AsyncStorage.getItem("theme");
-      const savedIsSystemTheme = await AsyncStorage.getItem("isSystemTheme");
-
-      if (savedIsSystemTheme !== null) {
-        const useSystemTheme = JSON.parse(savedIsSystemTheme);
-        setIsSystemTheme(useSystemTheme);
-
-        if (useSystemTheme) {
-          // Follow system theme
-          setIsDark(Appearance.getColorScheme() === "dark");
-        } else if (savedTheme) {
-          // Use saved manual theme
-          setIsDark(savedTheme === "dark");
-        }
-      } else {
-        // First time - follow system theme by default
-        setIsSystemTheme(true);
-        setIsDark(Appearance.getColorScheme() === "dark");
-      }
-    } catch (error) {
-      console.error("Error loading theme:", error);
-      setIsDark(Appearance.getColorScheme() === "dark");
-    }
-  };
-
   const toggleTheme = async () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    setIsSystemTheme(false); // User manually chose a theme
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    setIsSystemTheme(false);
 
-    try {
-      await AsyncStorage.setItem("theme", newTheme ? "dark" : "light");
-      await AsyncStorage.setItem("isSystemTheme", JSON.stringify(false));
-    } catch (error) {
-      console.error("Error saving theme:", error);
-    }
+    await setString(StorageKeys.THEME, nextDark ? "dark" : "light");
+    await setString(StorageKeys.IS_SYSTEM_THEME, JSON.stringify(false));
   };
 
   const useSystemTheme = async () => {
     setIsSystemTheme(true);
     setIsDark(Appearance.getColorScheme() === "dark");
 
-    try {
-      await AsyncStorage.setItem("isSystemTheme", JSON.stringify(true));
-      await AsyncStorage.removeItem("theme"); // Remove manual theme preference
-    } catch (error) {
-      console.error("Error saving system theme preference:", error);
-    }
+    await setString(StorageKeys.IS_SYSTEM_THEME, JSON.stringify(true));
+    await removeItem(StorageKeys.THEME);
   };
 
   const theme = isDark ? darkTheme : lightTheme;
 
-  const value = {
-    theme,
-    isDark,
-    isSystemTheme,
-    toggleTheme,
-    useSystemTheme,
-  };
-
   return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider
+      value={{ theme, isDark, isSystemTheme, toggleTheme, useSystemTheme }}
+    >
+      {children}
+    </ThemeContext.Provider>
   );
-};
+}

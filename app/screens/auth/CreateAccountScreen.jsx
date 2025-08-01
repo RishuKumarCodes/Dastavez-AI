@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useAuth } from "@/app/contexts/AuthContext";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -9,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Logo from "../../components/Logo";
+import { Logo } from "../../components/Logo";
 import OTPInput from "../../components/OTPInput";
 import { useTheme } from "../../contexts/ThemeContext";
 import AuthStyles from "./AuthStyling.jsx";
@@ -17,24 +19,43 @@ import AuthStyles from "./AuthStyling.jsx";
 export default function CreateAccountScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { email } = route.params || {};
-  const [firstName, setFirstName] = useState("Rishu");
-  const [lastName, setLastName] = useState("Kumar");
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { createAccount } = useAuth();
 
-  const handleLogin = () => {
+  const handleSignUp = async () => {
     if (!firstName.trim() || !lastName.trim() || !password.trim()) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-    navigation.navigate("CreatePassword", {
-      email,
-      firstName,
-      lastName,
-      password,
-    });
+    setLoading(true);
+    try {
+      const result = await createAccount({
+        firstName,
+        lastName,
+        email,
+        password,
+        confirmPassword,
+        otp,
+      });
+
+      if (!result.success) {
+        Alert.alert("Error", result.error || "Login failed");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (!theme) return null;
 
   return (
     <SafeAreaView
@@ -57,12 +78,13 @@ export default function CreateAccountScreen({ navigation, route }) {
             ]}
           >
             <Text style={[AuthStyles.title, { color: theme.colors.text }]}>
-              Create new account
+              Create New Account
             </Text>
 
+            {/* First Name */}
             <View style={AuthStyles.inputContainer}>
               <Text style={[AuthStyles.label, { color: theme.colors.text }]}>
-                First name
+                First Name
               </Text>
               <TextInput
                 style={[
@@ -75,12 +97,15 @@ export default function CreateAccountScreen({ navigation, route }) {
                 ]}
                 value={firstName}
                 onChangeText={setFirstName}
+                placeholder="John"
+                placeholderTextColor={theme.colors.textTertiary}
               />
             </View>
 
+            {/* Last Name */}
             <View style={AuthStyles.inputContainer}>
               <Text style={[AuthStyles.label, { color: theme.colors.text }]}>
-                Last name
+                Last Name
               </Text>
               <TextInput
                 style={[
@@ -93,9 +118,12 @@ export default function CreateAccountScreen({ navigation, route }) {
                 ]}
                 value={lastName}
                 onChangeText={setLastName}
+                placeholder="Doe"
+                placeholderTextColor={theme.colors.textTertiary}
               />
             </View>
 
+            {/* Password */}
             <View style={AuthStyles.inputContainer}>
               <Text style={[AuthStyles.label, { color: theme.colors.text }]}>
                 Password
@@ -113,9 +141,33 @@ export default function CreateAccountScreen({ navigation, route }) {
                 onChangeText={setPassword}
                 secureTextEntry
                 placeholder="••••••••"
+                placeholderTextColor={theme.colors.textTertiary}
               />
             </View>
 
+            {/* Confirm Password */}
+            <View style={AuthStyles.inputContainer}>
+              <Text style={[AuthStyles.label, { color: theme.colors.text }]}>
+                Confirm Password
+              </Text>
+              <TextInput
+                style={[
+                  AuthStyles.input,
+                  {
+                    backgroundColor: theme.colors.inputBackground,
+                    color: theme.colors.text,
+                    borderColor: theme.colors.border,
+                  },
+                ]}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                placeholder="••••••••"
+                placeholderTextColor={theme.colors.textTertiary}
+              />
+            </View>
+
+            {/* OTP */}
             <View style={AuthStyles.inputContainer}>
               <Text style={[AuthStyles.label, { color: theme.colors.text }]}>
                 Enter OTP
@@ -123,50 +175,22 @@ export default function CreateAccountScreen({ navigation, route }) {
               <OTPInput value={otp} onChange={setOtp} />
             </View>
 
-            <View style={AuthStyles.checkboxContainer}>
-              <TouchableOpacity
-                style={AuthStyles.checkbox}
-                onPress={() => setRememberMe(!rememberMe)}
-              >
-                <View
-                  style={[
-                    AuthStyles.checkboxBox,
-                    { borderColor: theme.colors.border },
-                    rememberMe && { backgroundColor: theme.colors.primary },
-                  ]}
-                >
-                  {rememberMe && <Text style={AuthStyles.checkmark}>✓</Text>}
-                </View>
-                <Text
-                  style={[
-                    AuthStyles.checkboxText,
-                    { color: theme.colors.text },
-                  ]}
-                >
-                  Remember me
-                </Text>
-              </TouchableOpacity>
+            Remember Me & Forgot
 
-              <TouchableOpacity>
-                <Text
-                  style={[
-                    AuthStyles.forgotText,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  Forgot Password ?
-                </Text>
-              </TouchableOpacity>
-            </View>
-
+            {/* Sign Up Button */}
             <TouchableOpacity
               style={[
                 AuthStyles.primaryButton,
                 { backgroundColor: theme.colors.secondary },
               ]}
-              onPress={handleLogin}
+              onPress={handleSignUp}
+              disabled={loading}
             >
-              <Text style={AuthStyles.primaryButtonText}>Login →</Text>
+              {loading ? (
+                <ActivityIndicator color={theme.colors.text} />
+              ) : (
+                <Text style={AuthStyles.primaryButtonText}>Sign Up →</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>

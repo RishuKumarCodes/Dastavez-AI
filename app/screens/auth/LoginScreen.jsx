@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useAuth } from "@/app/contexts/AuthContext";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -9,14 +11,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Logo from "../../components/Logo";
-import { useAuth } from "../../contexts/AuthContext";
+import { Logo } from "../../components/Logo";
 import { useTheme } from "../../contexts/ThemeContext";
 import AuthStyles from "./AuthStyling.jsx";
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, route }) {
   const { theme } = useTheme();
-  const { login } = useAuth();
+  const email = route.params?.email || "";
+  const { login, forgotPassword } = useAuth();
+
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,6 +33,7 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
     try {
       const result = await login({
+        email,
         password,
         rememberMe,
       });
@@ -43,6 +47,20 @@ export default function LoginScreen({ navigation }) {
       setLoading(false);
     }
   };
+
+  const handleForgotPassword = async () => {
+    try {
+      console.log(email)
+      const res = await forgotPassword(email);
+      if (res.success == true) {
+        console.log(res.success);
+        navigation.replace("VerifyResetOtp", { email });
+      }
+    } catch (err) {
+      Alert.alert("Error", err.message);
+    }
+  };
+  if (!theme) return null;
 
   return (
     <SafeAreaView
@@ -85,9 +103,11 @@ export default function LoginScreen({ navigation }) {
                 onChangeText={setPassword}
                 secureTextEntry
                 placeholder="••••••••"
+                placeholderTextColor={theme.colors.textTertiary}
               />
             </View>
 
+            {/* Remember + Forgot */}
             <View style={AuthStyles.checkboxContainer}>
               <TouchableOpacity
                 style={AuthStyles.checkbox}
@@ -112,18 +132,19 @@ export default function LoginScreen({ navigation }) {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleForgotPassword}>
                 <Text
                   style={[
                     AuthStyles.forgotText,
                     { color: theme.colors.primary },
                   ]}
                 >
-                  Forgot Password ?
+                  Forgot Password?
                 </Text>
               </TouchableOpacity>
             </View>
 
+            {/* Login Button */}
             <TouchableOpacity
               style={[
                 AuthStyles.primaryButton,
@@ -135,9 +156,11 @@ export default function LoginScreen({ navigation }) {
               onPress={handleLogin}
               disabled={loading}
             >
-              <Text style={AuthStyles.primaryButtonText}>
-                {loading ? "Logging in..." : "Login →"}
-              </Text>
+              {loading ? (
+                <ActivityIndicator color={theme.colors.text} />
+              ) : (
+                <Text style={AuthStyles.primaryButtonText}>Login →</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
