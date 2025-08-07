@@ -20,7 +20,7 @@ export const useTheme = () => {
 export const lightTheme = {
   colors: {
     background: "#ffffff",
-    surface: "#DBE8FF",
+    surface: "#e8edf8ff",
     primary: "#3b82f6",
     secondary: "#fbbf24",
     text: "#1f2937",
@@ -35,7 +35,7 @@ export const lightTheme = {
 export const darkTheme = {
   colors: {
     background: "#1A1F2C",
-    surface: "#304B7A",
+    surface: "#252e3fff",
     primary: "#3b82f6",
     secondary: "#c99000ff",
     text: "#ffffff",
@@ -46,23 +46,6 @@ export const darkTheme = {
     cardBackground: "#304B7A",
   },
 };
-
-// the orignal theme provided by them:
-// export const darkThemecopy = {
-//   root: {
-//     background: "#1a1f2c" /* Main dark background */,
-//     judicialdark: "#1a1f2c" /* Same as background - dark navy */,
-
-//     /* Secondary Backgrounds */
-//     judicialnavy: "#203354" /* Navy blue for cards/sections */,
-//     judicialblue: "#304b7a" /* Medium blue for accents */,
-
-//     /* Card/Section Backgrounds */
-//     card: "#2d3748" /* Dark card background */,
-//     secondary: "#3a4a5f" /* Secondary background */,
-//     muted: "#3d4758" /* Muted background */,
-//   },
-// };
 
 export default function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(Appearance.getColorScheme() === "dark");
