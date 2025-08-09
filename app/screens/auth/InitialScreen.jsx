@@ -30,7 +30,7 @@ export default function InitialScreen({ navigation }) {
     setLoading(true);
     try {
       const res = await fetch(
-        "https://law-ai-7y05.onrender.com/auth/check-email",
+        "http://34.68.115.157:5000/auth/check-email",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

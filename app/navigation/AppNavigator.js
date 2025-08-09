@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
@@ -11,14 +11,9 @@ import SettingsScreen from "../screens/app/SetttingsScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// Settings Stack Navigator
 const SettingsStack = () => {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="/" component={SettingsScreen} />
       <Stack.Screen name="EditProfile" component={EditProfilepage} />
     </Stack.Navigator>
@@ -41,14 +36,25 @@ export default function AppNavigator() {
           },
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textSecondary,
-          tabBarIcon: ({ color, size }) => {
-            let iconName;
+          tabBarIcon: ({ color, size, focused }) => {
             if (route.name === "Home") {
-              iconName = "home-outline";
+              // Use MaterialCommunityIcons for chat
+              return (
+                <MaterialCommunityIcons
+                  name={focused ? "chat" : "chat-outline"}
+                  size={size}
+                  color={color}
+                />
+              );
             } else if (route.name === "Settings") {
-              iconName = "settings-outline";
+              return (
+                <Ionicons
+                  name={focused ? "settings" : "settings-outline"}
+                  size={size}
+                  color={color}
+                />
+              );
             }
-            return <Ionicons name={iconName} size={size} color={color} />;
           },
         })}
       >

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Octicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -24,6 +24,7 @@ const HomeScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const { colors } = theme;
   const { token } = useAuth();
+  const BACKEND = "http://34.68.115.157:5000";
 
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -44,16 +45,13 @@ const HomeScreen = ({ navigation }) => {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await fetch(
-        "https://law-ai-7y05.onrender.com/auth/user",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${BACKEND}/auth/user`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.ok) {
         const userData = await response.json();
@@ -69,16 +67,13 @@ const HomeScreen = ({ navigation }) => {
 
   const fetchChatHistory = async () => {
     try {
-      const response = await fetch(
-        "https://law-ai-7y05.onrender.com/api/chat/history",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${BACKEND}/api/chat/history`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.ok) {
         const history = await response.json();
@@ -132,19 +127,16 @@ const HomeScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://law-ai-7y05.onrender.com/api/chat/message",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message: inputText.trim() || "Please analyze this file",
-          }),
-        }
-      );
+      const response = await fetch(`${BACKEND}/api/chat/message`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: inputText.trim() || "Please analyze this file",
+        }),
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -218,17 +210,14 @@ const HomeScreen = ({ navigation }) => {
         name: file.name,
       });
 
-      const response = await fetch(
-        "https://law-ai-7y05.onrender.com/api/files/upload",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-          body: formData,
-        }
-      );
+      const response = await fetch(`${BACKEND}/api/files/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+        body: formData,
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -265,15 +254,12 @@ const HomeScreen = ({ navigation }) => {
           style: "destructive",
           onPress: async () => {
             try {
-              const response = await fetch(
-                "https://law-ai-7y05.onrender.com/api/chat/clear",
-                {
-                  method: "DELETE",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
-              );
+              const response = await fetch(`${BACKEND}/api/chat/clear`, {
+                method: "DELETE",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
 
               if (response.ok) {
                 setMessages([]);
@@ -353,13 +339,9 @@ const HomeScreen = ({ navigation }) => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons
-        name="chatbubbles-outline"
-        size={64}
-        color={colors.textTertiary}
-      />
+      <Ionicons name="chatbubbles-outline" size={64} color={colors.secondary} />
       <Text style={[styles.emptyTitle, { color: colors.text }]}>
-        Welcome to Law AI
+        Welcome to Dastavez AI
       </Text>
       <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
         Ask me anything about law, upload legal documents for analysis, or get
@@ -407,10 +389,7 @@ const HomeScreen = ({ navigation }) => {
       style={[styles.container, { backgroundColor: colors.background }]}
       edges={["top"]}
     >
-      <StatusBar
-        backgroundColor={colors.surface}
-        translucent={false}
-      />
+      <StatusBar backgroundColor={colors.surface} translucent={false} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -419,11 +398,11 @@ const HomeScreen = ({ navigation }) => {
         <View style={[styles.header, { backgroundColor: colors.surface }]}>
           <View style={styles.headerLeft}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>
-              Law AI Assistant
+              Dastavez Assistant
             </Text>
           </View>
           <TouchableOpacity onPress={clearChat} style={styles.clearButton}>
-            <Ionicons name="trash-outline" size={20} color={colors.secondary} />
+            <Octicons name="trash" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 

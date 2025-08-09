@@ -1,12 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Alert,
-  Image,
-  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -16,6 +12,7 @@ import {
   View,
 } from "react-native";
 import Config from "react-native-config";
+import ChangeProfile from "../../components/settings/ChangeProfile";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
@@ -24,12 +21,13 @@ const EditProfilePage = ({ route, navigation }) => {
   const { colors } = theme;
   const { user, onSave } = route.params;
   const { token } = useAuth();
-  const BACKEND = Config.BACKEND_URL || "https://law-ai-7y05.onrender.com";
+  const BACKEND = Config.BACKEND_URL || "http://34.68.115.157:5000";
 
   const [editForm, setEditForm] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     profileImage: user?.profileImage || null,
+    profileImageFile: null,
   });
 
   const [loading, setLoading] = useState(false);
@@ -42,6 +40,7 @@ const EditProfilePage = ({ route, navigation }) => {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         profileImage: user.profileImage || null,
+        profileImageFile: null,
       });
     }
   }, [user]);
@@ -54,218 +53,113 @@ const EditProfilePage = ({ route, navigation }) => {
     setHasUnsavedChanges(hasChanges);
   }, [editForm, user, imageChanged]);
 
-  const dummyProfile = useCallback(() => {
-    const fn = editForm.firstName?.charAt(0)?.toUpperCase() || "";
-    const ln = editForm.lastName?.charAt(0)?.toUpperCase() || "";
-    return fn + ln;
-  }, [editForm.firstName, editForm.lastName]);
-
   const api = {
     updateProfileInfo: async (firstName, lastName) => {
-      console.log(firstName, lastName);
-      console.log(BACKEND);
-      console.log(token);
       try {
-        const response = await fetch(`${BACKEND}/api/profile/info`, {
+        const response = await fetch(`${BACKEND}/api/profile/update`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify({
-            firstName: firstName,
-            lastName: lastName,
-          }),
+          body: JSON.stringify({ firstName, lastName }),
         });
 
-        const responseText = await response.text();
-        console.log("Update profile response:", responseText);
-
+        const text = await response.text();
         if (!response.ok) {
-          const errorData = responseText ? JSON.parse(responseText) : {};
-          throw new Error(errorData.message || "Failed to update profile");
+          let err = {};
+          try {
+            err = text ? JSON.parse(text) : {};
+          } catch (e) {
+            console.log("updateProfileInfo non-json:", text);
+          }
+          throw new Error(err.message || "Failed to update profile info");
         }
-
-        // Try to parse as JSON, if it fails, assume success
         try {
-          return JSON.parse(responseText);
-        } catch (parseError) {
-          console.log("Response is not JSON, assuming success");
+          return JSON.parse(text);
+        } catch {
           return { success: true };
         }
       } catch (error) {
-        console.error("Error updating profile:", error);
+        console.error("Error updating profile info:", error);
         throw error;
       }
     },
 
-    uploadProfileImage: async (imageUri) => {
+    uploadProfileImage: async (imageParam) => {
       try {
-        const formData = new FormData();
-        const filename = imageUri.split("/").pop();
-        const fileType = filename.split(".").pop().toLowerCase();
+        if (!imageParam) throw new Error("No image provided");
 
-        // Validate file type
-        const allowedTypes = ["jpg", "jpeg", "png", "gif", "webp"];
-        if (!allowedTypes.includes(fileType)) {
+        // extract uri, name, type in a safe way
+        const isObject = typeof imageParam === "object" && imageParam.uri;
+        const uri = isObject ? imageParam.uri : imageParam;
+        if (!uri || typeof uri !== "string") {
+          throw new Error("Image uri is missing or invalid");
+        }
+
+        const filename = isObject
+          ? imageParam.name || uri.split("/").pop()
+          : uri.split("/").pop();
+
+        const ext = (filename?.split(".").pop() || "").toLowerCase();
+        const allowed = ["jpg", "jpeg", "png", "gif", "webp"];
+        if (!allowed.includes(ext)) {
           throw new Error(
             "Please select a valid image file (JPG, PNG, GIF, or WebP)"
           );
         }
 
-        formData.append("image", {
-          uri: imageUri,
+        const mime =
+          (isObject && imageParam.type) ||
+          `image/${ext === "jpg" ? "jpeg" : ext}`;
+
+        const formData = new FormData();
+
+        // On Android it's okay to pass file:// URIs.
+        // Use the uri as-is — the backend or expo will handle it.
+        formData.append("profileImage", {
+          uri,
           name: filename,
-          type: `image/${fileType === "jpg" ? "jpeg" : fileType}`,
+          type: mime,
         });
 
-        const response = await fetch(`${BACKEND}/api/profile/upload-image`, {
+        const response = await fetch(`${BACKEND}/api/profile/profile-image`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "application/json",
-            // Don't set Content-Type header for FormData
+            // DO NOT set Content-Type for FormData
           },
           body: formData,
         });
 
         const responseText = await response.text();
-        console.log("Upload image response:", responseText);
+        console.log("uploadProfileImage status:", response.status);
+        console.log("uploadProfileImage body:", responseText);
 
         if (!response.ok) {
-          const errorData = responseText ? JSON.parse(responseText) : {};
-          throw new Error(errorData.message || "Failed to upload image");
+          let err = {};
+          try {
+            err = responseText ? JSON.parse(responseText) : {};
+          } catch {
+            console.log("uploadProfileImage: response not JSON");
+          }
+          throw new Error(
+            err.message || `Failed to upload image (status ${response.status})`
+          );
         }
 
-        // Try to parse as JSON
         try {
           return JSON.parse(responseText);
-        } catch (parseError) {
-          console.log("Upload response is not JSON, assuming success");
-          return { success: true, profileImage: imageUri };
+        } catch {
+          return { success: true, profileImage: uri };
         }
       } catch (error) {
         console.error("Error uploading image:", error);
         throw error;
       }
     },
-
-    deleteProfileImage: async () => {
-      try {
-        const response = await fetch(`${BACKEND}/api/profile/remove-image`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          const responseText = await response.text();
-          const errorData = responseText ? JSON.parse(responseText) : {};
-          throw new Error(
-            errorData.message || "Failed to remove profile image"
-          );
-        }
-
-        return { success: true };
-      } catch (error) {
-        console.error("Error removing profile image:", error);
-        throw error;
-      }
-    },
-  };
-
-  const selectImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission Required",
-        "Sorry, we need camera roll permissions to select images."
-      );
-      return;
-    }
-
-    const options = [
-      "Take Photo",
-      "Choose from Library",
-      "Remove Photo",
-      "Cancel",
-    ];
-    const destructiveButtonIndex = 2;
-    const cancelButtonIndex = 3;
-
-    if (Platform.OS === "ios") {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options,
-          destructiveButtonIndex,
-          cancelButtonIndex,
-        },
-        (buttonIndex) => {
-          handleImageSelection(buttonIndex);
-        }
-      );
-    } else {
-      Alert.alert("Select Profile Photo", "Choose an option", [
-        { text: "Take Photo", onPress: () => handleImageSelection(0) },
-        { text: "Choose from Library", onPress: () => handleImageSelection(1) },
-        {
-          text: "Remove Photo",
-          onPress: () => handleImageSelection(2),
-          style: "destructive",
-        },
-        { text: "Cancel", onPress: () => {}, style: "cancel" },
-      ]);
-    }
-  };
-
-  const handleImageSelection = async (buttonIndex) => {
-    let result;
-
-    switch (buttonIndex) {
-      case 0: // Take Photo
-        const cameraPermission =
-          await ImagePicker.requestCameraPermissionsAsync();
-        if (cameraPermission.status !== "granted") {
-          Alert.alert(
-            "Permission Required",
-            "Sorry, we need camera permissions to take photos."
-          );
-          return;
-        }
-
-        result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.8,
-        });
-        break;
-      case 1: // Choose from Library
-        result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.8,
-        });
-        break;
-      case 2: // Remove Photo
-        setEditForm((prev) => ({ ...prev, profileImage: null }));
-        setImageChanged(true);
-        return;
-      default:
-        return;
-    }
-
-    if (result && !result.canceled && result.assets?.[0]) {
-      setEditForm((prev) => ({
-        ...prev,
-        profileImage: result.assets[0].uri,
-      }));
-      setImageChanged(true);
-    }
   };
 
   const validateForm = () => {
@@ -287,7 +181,6 @@ const EditProfilePage = ({ route, navigation }) => {
     }
 
     setLoading(true);
-
     try {
       let updatedData = {
         firstName: editForm.firstName.trim(),
@@ -295,35 +188,31 @@ const EditProfilePage = ({ route, navigation }) => {
         profileImage: editForm.profileImage,
       };
 
-      // Update profile info
       await api.updateProfileInfo(editForm.firstName, editForm.lastName);
 
-      // Handle image operations
       if (imageChanged) {
-        if (editForm.profileImage === null) {
-          // Remove image if it was deleted
-          if (user?.profileImage) {
-            await api.deleteProfileImage();
-          }
-          updatedData.profileImage = null;
-        } else if (
-          editForm.profileImage &&
-          (editForm.profileImage.startsWith("file://") ||
-            editForm.profileImage.startsWith("ph://") ||
-            editForm.profileImage.startsWith("content://"))
-        ) {
-          // Upload new image if it's a local file
-          const imageResult = await api.uploadProfileImage(
-            editForm.profileImage
-          );
+        // If we have a file object use that, otherwise fall back to uri string
+        const imageToUpload = editForm.profileImage;
+        // Only upload if it's a local file uri or a file object (not a remote already uploaded URL)
+        const isLocal =
+          (typeof imageToUpload === "string" &&
+            (imageToUpload.startsWith("file://") ||
+              imageToUpload.startsWith("content://") ||
+              imageToUpload.startsWith("ph://"))) ||
+          (typeof imageToUpload === "object" && imageToUpload.uri);
+
+        if (isLocal) {
+          const imageResult = await api.uploadProfileImage(imageToUpload);
           updatedData.profileImage =
             imageResult.profileImage ||
             imageResult.imageUrl ||
             editForm.profileImage;
+        } else {
+          // it might be a remote URL (no upload needed)
+          updatedData.profileImage = editForm.profileImage;
         }
       }
 
-      // Call the parent's onSave callback
       onSave(updatedData);
       navigation.goBack();
       Alert.alert("Success", "Profile updated successfully!");
@@ -335,34 +224,6 @@ const EditProfilePage = ({ route, navigation }) => {
       );
     } finally {
       setLoading(false);
-    }
-  };
-
-  const renderProfileImage = () => {
-    if (editForm.profileImage) {
-      return (
-        <Image
-          source={{ uri: editForm.profileImage }}
-          style={styles.profileImage}
-          onError={(error) => {
-            console.log("Image load error:", error);
-            setEditForm((prev) => ({ ...prev, profileImage: null }));
-          }}
-        />
-      );
-    } else {
-      return (
-        <View
-          style={[
-            styles.profileInitials,
-            { backgroundColor: colors.cardBackground },
-          ]}
-        >
-          <Text style={[styles.initialsText, { color: colors.textSecondary }]}>
-            {dummyProfile() || "?"}
-          </Text>
-        </View>
-      );
     }
   };
 
@@ -388,36 +249,14 @@ const EditProfilePage = ({ route, navigation }) => {
 
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Profile Img */}
-        <View style={styles.profileImageSection}>
-          <TouchableOpacity
-            style={styles.profileImageContainer}
-            onPress={selectImage}
-            disabled={loading}
-          >
-            {renderProfileImage()}
+        <ChangeProfile
+          editForm={editForm}
+          setEditForm={setEditForm}
+          imageChanged={imageChanged}
+          setImageChanged={setImageChanged}
+          colors={colors}
+        />
 
-            <View
-              style={[
-                styles.cameraButton,
-                {
-                  backgroundColor: colors.primary,
-                  borderColor: colors.background,
-                },
-              ]}
-            >
-              <Ionicons name="camera" size={16} color="white" />
-            </View>
-          </TouchableOpacity>
-
-          <Text
-            style={[styles.profileImageText, { color: colors.textSecondary }]}
-          >
-            Tap to change profile photo
-          </Text>
-        </View>
-
-        {/* Form */}
         {[
           {
             label: "First Name",
@@ -457,7 +296,7 @@ const EditProfilePage = ({ route, navigation }) => {
         ))}
       </ScrollView>
 
-      {/* save btn */}
+      {/* Save */}
       <View
         style={[styles.bottomContainer, { backgroundColor: colors.background }]}
       >
@@ -493,9 +332,7 @@ const EditProfilePage = ({ route, navigation }) => {
 export default EditProfilePage;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -503,79 +340,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
-  headerButton: {
-    minWidth: 60,
-  },
+  headerButton: { minWidth: 60 },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
     textAlign: "center",
     flex: 1,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 24,
-  },
-  bottomContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
+  content: { flex: 1, paddingHorizontal: 16, paddingTop: 24 },
+  bottomContainer: { paddingHorizontal: 16, paddingVertical: 16 },
   saveButtonBottom: {
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
-  saveButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  profileImageSection: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  profileImageContainer: {
-    position: "relative",
-    marginBottom: 8,
-  },
-  profileImage: {
-    width: 140,
-    height: 140,
-    borderRadius: 80,
-  },
-  profileInitials: {
-    width: 140,
-    height: 140,
-    borderRadius: 80,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  initialsText: {
-    fontSize: 36,
-    fontWeight: "600",
-    color: "white",
-  },
-  cameraButton: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 3,
-  },
-  profileImageText: {
-    fontSize: 14,
-    textAlign: "center",
-    opacity: 0.5,
-  },
-  inputGroup: {
-    marginBottom: 22,
-  },
+  saveButtonText: { color: "white", fontSize: 16, fontWeight: "600" },
+  inputGroup: { marginBottom: 22 },
   inputLabel: {
     fontSize: 14,
     fontWeight: "500",

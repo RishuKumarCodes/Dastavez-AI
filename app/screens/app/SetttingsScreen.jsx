@@ -41,7 +41,7 @@ const SettingsPage = ({ navigation }) => {
   const fetchUserProfile = async () => {
     try {
       const response = await fetch(
-        "https://law-ai-7y05.onrender.com/auth/user",
+        "http://34.68.115.157:5000/auth/user",
         {
           method: "GET",
           headers: {

@@ -15,7 +15,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const BACKEND = Config.BACKEND_URL || "https://law-ai-7y05.onrender.com";
+  const BACKEND = "http://34.68.115.157:5000";
 
   useEffect(() => {
     checkAuthState();
