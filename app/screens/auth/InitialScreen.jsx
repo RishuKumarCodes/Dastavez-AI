@@ -12,14 +12,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Config from "react-native-config";
+import AnimatedStars from "../../components/GoldenStarsAnimation";
+
 import { MainLogo } from "../../components/Logo";
 import { useTheme } from "../../contexts/ThemeContext";
 import AuthStyles from "./AuthStyling.jsx";
-
 export default function InitialScreen({ navigation }) {
   const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const BACKEND = Config.BACKEND_URL || "https://dastavezai-backend-797326917118.asia-south2.run.app";
 
   const handleContinue = async () => {
     if (!email.trim()) {
@@ -29,14 +32,11 @@ export default function InitialScreen({ navigation }) {
 
     setLoading(true);
     try {
-      const res = await fetch(
-        "http://34.68.115.157:5000/auth/check-email",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim() }),
-        }
-      );
+      const res = await fetch(`${BACKEND}/api/auth/check-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
 
       if (!res.ok) {
         throw new Error(`Server responded with status ${res.status}`);
@@ -68,6 +68,7 @@ export default function InitialScreen({ navigation }) {
         { backgroundColor: theme.colors.background },
       ]}
     >
+      <AnimatedStars />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={AuthStyles.keyboardView}

@@ -2,9 +2,11 @@ import { StyleSheet } from "react-native";
 const AuthStyles = StyleSheet.create({
   container: {
     flex: 1,
+    position: "relative",
   },
   keyboardView: {
     flex: 1,
+    zIndex: 2,
   },
   content: {
     flex: 1,

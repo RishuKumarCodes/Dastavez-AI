@@ -16,7 +16,7 @@ import OTPInput from "../../components/OTPInput";
 import { useTheme } from "../../contexts/ThemeContext";
 import AuthStyles from "./AuthStyling.jsx";
 
-export default function CreateAccountScreen({ navigation, route }) {
+export default function CreateAccountScreen({ route }) {
   const { theme } = useTheme();
   const { email } = route.params || {};
 
@@ -25,7 +25,6 @@ export default function CreateAccountScreen({ navigation, route }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [otp, setOtp] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const { createAccount } = useAuth();
 
@@ -34,6 +33,17 @@ export default function CreateAccountScreen({ navigation, route }) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
+
+    if (password.length < 8) {
+      Alert.alert("Error", "Password must be at least 8 characters long");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
     setLoading(true);
     try {
       const result = await createAccount({
@@ -45,10 +55,11 @@ export default function CreateAccountScreen({ navigation, route }) {
         otp,
       });
 
-      if (!result.success) {
+      if (result && !result.success) {
         Alert.alert("Error", result.error || "Login failed");
       }
     } catch (error) {
+      console.error("Signup error:", error);
       Alert.alert("Error", "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -174,8 +185,6 @@ export default function CreateAccountScreen({ navigation, route }) {
               </Text>
               <OTPInput value={otp} onChange={setOtp} />
             </View>
-
-            Remember Me & Forgot
 
             {/* Sign Up Button */}
             <TouchableOpacity

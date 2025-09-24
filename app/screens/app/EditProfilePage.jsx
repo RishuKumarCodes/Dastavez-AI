@@ -21,7 +21,7 @@ const EditProfilePage = ({ route, navigation }) => {
   const { colors } = theme;
   const { user, onSave } = route.params;
   const { token } = useAuth();
-  const BACKEND = Config.BACKEND_URL || "http://34.68.115.157:5000";
+  const BACKEND = Config.BACKEND_URL || "https://dastavezai-backend-797326917118.asia-south2.run.app";
 
   const [editForm, setEditForm] = useState({
     firstName: user?.firstName || "",

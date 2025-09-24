@@ -15,7 +15,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  const BACKEND = "http://34.68.115.157:5000";
+  // const BACKEND = Config.BACKEND_URL || "https://eduhaven-backend.onrender.com";
+  const BACKEND = Config.BACKEND_URL || "https://dastavezai-backend-797326917118.asia-south2.run.app";
 
   useEffect(() => {
     checkAuthState();
@@ -40,7 +41,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (userData) => {
     const { email, password } = userData;
     try {
-      const res = await fetch(`${BACKEND}/auth/login`, {
+      const res = await fetch(`${BACKEND}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +89,7 @@ export const AuthProvider = ({ children }) => {
       userData;
 
     try {
-      const res = await fetch(`${BACKEND}/auth/signup`, {
+      const res = await fetch(`${BACKEND}/api/auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,7 +139,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const res = await fetch(`${BACKEND}/auth/forgot-password`, {
+      const res = await fetch(`${BACKEND}/api/authforgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -164,7 +165,7 @@ export const AuthProvider = ({ children }) => {
 
   // const verifyResetOtp = async (email, otp) => {
   //   const res = await fetch(
-  //     `${BACKEND}/auth/verify-reset-otp`,
+  //     `${BACKEND}/api/authverify-reset-otp`,
   //     {
   //       method: "POST",
   //       body: JSON.stringify({ email, otp }),
@@ -176,7 +177,7 @@ export const AuthProvider = ({ children }) => {
   // };
 
   const resetPassword = async (email, otp, newPassword, confirmPassword) => {
-    const res = await fetch(`${BACKEND}/auth/reset-password`, {
+    const res = await fetch(`${BACKEND}/api/authreset-password`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

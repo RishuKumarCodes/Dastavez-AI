@@ -38,7 +38,7 @@ export default function LoginScreen({ navigation, route }) {
         rememberMe,
       });
 
-      if (!result.success) {
+      if (result && !result.success) {
         Alert.alert("Error", result.error || "Login failed");
       }
     } catch (error) {
@@ -50,7 +50,7 @@ export default function LoginScreen({ navigation, route }) {
 
   const handleForgotPassword = async () => {
     try {
-      console.log(email)
+      console.log(email);
       const res = await forgotPassword(email);
       if (res.success == true) {
         console.log(res.success);
@@ -107,44 +107,17 @@ export default function LoginScreen({ navigation, route }) {
               />
             </View>
 
-            {/* Remember + Forgot */}
-            <View style={AuthStyles.checkboxContainer}>
-              <TouchableOpacity
-                style={AuthStyles.checkbox}
-                onPress={() => setRememberMe(!rememberMe)}
+            <TouchableOpacity
+              onPress={handleForgotPassword}
+              style={{ marginLeft: "auto" }}
+            >
+              <Text
+                style={[AuthStyles.forgotText, { color: theme.colors.primary }]}
               >
-                <View
-                  style={[
-                    AuthStyles.checkboxBox,
-                    { borderColor: theme.colors.border },
-                    rememberMe && { backgroundColor: theme.colors.primary },
-                  ]}
-                >
-                  {rememberMe && <Text style={AuthStyles.checkmark}>✓</Text>}
-                </View>
-                <Text
-                  style={[
-                    AuthStyles.checkboxText,
-                    { color: theme.colors.text },
-                  ]}
-                >
-                  Remember me
-                </Text>
-              </TouchableOpacity>
+                Forgot Password?
+              </Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleForgotPassword}>
-                <Text
-                  style={[
-                    AuthStyles.forgotText,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  Forgot Password?
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Login Button */}
             <TouchableOpacity
               style={[
                 AuthStyles.primaryButton,

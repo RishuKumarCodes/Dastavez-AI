@@ -41,7 +41,7 @@ const SettingsPage = ({ navigation }) => {
   const fetchUserProfile = async () => {
     try {
       const response = await fetch(
-        "http://34.68.115.157:5000/auth/user",
+        "https://dastavezai-backend-797326917118.asia-south2.run.app/api/profile/info",
         {
           method: "GET",
           headers: {
