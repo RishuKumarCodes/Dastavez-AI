@@ -1,5 +1,5 @@
-import { useAuth } from "@/app/contexts/AuthContext";
-import React, { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -50,10 +50,8 @@ export default function LoginScreen({ navigation, route }) {
 
   const handleForgotPassword = async () => {
     try {
-      console.log(email);
       const res = await forgotPassword(email);
       if (res.success == true) {
-        console.log(res.success);
         navigation.replace("VerifyResetOtp", { email });
       }
     } catch (err) {

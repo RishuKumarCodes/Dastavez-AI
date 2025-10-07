@@ -1,8 +1,8 @@
 import { createStackNavigator } from "@react-navigation/stack";
-import CreateAccountScreen from "../screens/auth/CreateAccountScreen";
-import InitialScreen from "../screens/auth/InitialScreen";
-import LoginScreen from "../screens/auth/LoginScreen";
-import VerifyResetOtp from "../screens/auth/VerifyResetOtp";
+import CreateAccountScreen from "../auth/CreateAccountScreen";
+import InitialScreen from "../auth/InitialScreen";
+import LoginScreen from "../auth/LoginScreen";
+import VerifyResetOtp from "../auth/VerifyResetOtp";
 
 const Stack = createStackNavigator();
 

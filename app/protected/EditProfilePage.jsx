@@ -21,7 +21,9 @@ const EditProfilePage = ({ route, navigation }) => {
   const { colors } = theme;
   const { user, onSave } = route.params;
   const { token } = useAuth();
-  const BACKEND = Config.BACKEND_URL || "https://dastavezai-backend-797326917118.asia-south2.run.app";
+  const BACKEND =
+    Config.BACKEND_URL ||
+    "https://dastavezai-backend-797326917118.asia-south2.run.app";
 
   const [editForm, setEditForm] = useState({
     firstName: user?.firstName || "",
@@ -55,109 +57,86 @@ const EditProfilePage = ({ route, navigation }) => {
 
   const api = {
     updateProfileInfo: async (firstName, lastName) => {
-      try {
-        const response = await fetch(`${BACKEND}/api/profile/update`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ firstName, lastName }),
-        });
+      const response = await fetch(`${BACKEND}/api/profile/info`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ firstName, lastName }),
+      });
 
-        const text = await response.text();
-        if (!response.ok) {
-          let err = {};
-          try {
-            err = text ? JSON.parse(text) : {};
-          } catch (e) {
-            console.log("updateProfileInfo non-json:", text);
-          }
-          throw new Error(err.message || "Failed to update profile info");
-        }
+      const text = await response.text();
+      if (!response.ok) {
+        let err = {};
         try {
-          return JSON.parse(text);
-        } catch {
-          return { success: true };
-        }
-      } catch (error) {
-        console.error("Error updating profile info:", error);
-        throw error;
+          err = text ? JSON.parse(text) : {};
+        } catch {}
+        throw new Error(err.message || "Failed to update profile info");
+      }
+
+      try {
+        return JSON.parse(text);
+      } catch {
+        return { success: true };
       }
     },
 
     uploadProfileImage: async (imageParam) => {
-      try {
-        if (!imageParam) throw new Error("No image provided");
+      if (!imageParam) throw new Error("No image provided");
 
-        // extract uri, name, type in a safe way
-        const isObject = typeof imageParam === "object" && imageParam.uri;
-        const uri = isObject ? imageParam.uri : imageParam;
-        if (!uri || typeof uri !== "string") {
-          throw new Error("Image uri is missing or invalid");
-        }
+      const isObject = typeof imageParam === "object" && imageParam.uri;
+      const uri = isObject ? imageParam.uri : imageParam;
+      if (!uri || typeof uri !== "string")
+        throw new Error("Image uri is missing or invalid");
 
-        const filename = isObject
-          ? imageParam.name || uri.split("/").pop()
-          : uri.split("/").pop();
+      const filename = isObject
+        ? imageParam.name || uri.split("/").pop()
+        : uri.split("/").pop();
 
-        const ext = (filename?.split(".").pop() || "").toLowerCase();
-        const allowed = ["jpg", "jpeg", "png", "gif", "webp"];
-        if (!allowed.includes(ext)) {
-          throw new Error(
-            "Please select a valid image file (JPG, PNG, GIF, or WebP)"
-          );
-        }
+      const ext = (filename?.split(".").pop() || "").toLowerCase();
+      const allowed = ["jpg", "jpeg", "png", "gif", "webp"];
+      if (!allowed.includes(ext))
+        throw new Error(
+          "Please select a valid image file (JPG, PNG, GIF, or WebP)"
+        );
 
-        const mime =
-          (isObject && imageParam.type) ||
-          `image/${ext === "jpg" ? "jpeg" : ext}`;
+      const mime =
+        (isObject && imageParam.type) ||
+        `image/${ext === "jpg" ? "jpeg" : ext}`;
 
-        const formData = new FormData();
+      const formData = new FormData();
+      formData.append("profileImage", {
+        uri,
+        name: filename,
+        type: mime,
+      });
 
-        // On Android it's okay to pass file:// URIs.
-        // Use the uri as-is — the backend or expo will handle it.
-        formData.append("profileImage", {
-          uri,
-          name: filename,
-          type: mime,
-        });
+      const response = await fetch(`${BACKEND}/api/profile/profile-image`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        body: formData,
+      });
 
-        const response = await fetch(`${BACKEND}/api/profile/profile-image`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-            // DO NOT set Content-Type for FormData
-          },
-          body: formData,
-        });
-
-        const responseText = await response.text();
-        console.log("uploadProfileImage status:", response.status);
-        console.log("uploadProfileImage body:", responseText);
-
-        if (!response.ok) {
-          let err = {};
-          try {
-            err = responseText ? JSON.parse(responseText) : {};
-          } catch {
-            console.log("uploadProfileImage: response not JSON");
-          }
-          throw new Error(
-            err.message || `Failed to upload image (status ${response.status})`
-          );
-        }
-
+      const responseText = await response.text();
+      if (!response.ok) {
+        let err = {};
         try {
-          return JSON.parse(responseText);
-        } catch {
-          return { success: true, profileImage: uri };
-        }
-      } catch (error) {
-        console.error("Error uploading image:", error);
-        throw error;
+          err = responseText ? JSON.parse(responseText) : {};
+        } catch {}
+        throw new Error(
+          err.message || `Failed to upload image (status ${response.status})`
+        );
+      }
+
+      try {
+        return JSON.parse(responseText);
+      } catch {
+        return { success: true, profileImage: uri };
       }
     },
   };
@@ -173,13 +152,38 @@ const EditProfilePage = ({ route, navigation }) => {
     return errors;
   };
 
-  const handleSave = async () => {
+  const handleSaveName = async () => {
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
       Alert.alert("Validation Error", validationErrors.join("\n"));
       return;
     }
 
+    await api.updateProfileInfo(
+      editForm.firstName.trim(),
+      editForm.lastName.trim()
+    );
+  };
+
+  const handleSaveImage = async () => {
+    const imageToUpload = editForm.profileImage;
+    const isLocal =
+      (typeof imageToUpload === "string" &&
+        (imageToUpload.startsWith("file://") ||
+          imageToUpload.startsWith("content://") ||
+          imageToUpload.startsWith("ph://"))) ||
+      (typeof imageToUpload === "object" && imageToUpload.uri);
+
+    if (!isLocal) return editForm.profileImage;
+
+    const imageResult = await api.uploadProfileImage(imageToUpload);
+    return (
+      imageResult.profileImage || imageResult.imageUrl || editForm.profileImage
+    );
+  };
+
+  /** ─── Combined Save Logic ─────────────────────────────────────── */
+  const handleSave = async () => {
     setLoading(true);
     try {
       let updatedData = {
@@ -188,29 +192,13 @@ const EditProfilePage = ({ route, navigation }) => {
         profileImage: editForm.profileImage,
       };
 
-      await api.updateProfileInfo(editForm.firstName, editForm.lastName);
+      // update name
+      await handleSaveName();
 
+      // update image if changed
       if (imageChanged) {
-        // If we have a file object use that, otherwise fall back to uri string
-        const imageToUpload = editForm.profileImage;
-        // Only upload if it's a local file uri or a file object (not a remote already uploaded URL)
-        const isLocal =
-          (typeof imageToUpload === "string" &&
-            (imageToUpload.startsWith("file://") ||
-              imageToUpload.startsWith("content://") ||
-              imageToUpload.startsWith("ph://"))) ||
-          (typeof imageToUpload === "object" && imageToUpload.uri);
-
-        if (isLocal) {
-          const imageResult = await api.uploadProfileImage(imageToUpload);
-          updatedData.profileImage =
-            imageResult.profileImage ||
-            imageResult.imageUrl ||
-            editForm.profileImage;
-        } else {
-          // it might be a remote URL (no upload needed)
-          updatedData.profileImage = editForm.profileImage;
-        }
+        const uploadedUrl = await handleSaveImage();
+        updatedData.profileImage = uploadedUrl;
       }
 
       onSave(updatedData);
@@ -218,10 +206,7 @@ const EditProfilePage = ({ route, navigation }) => {
       Alert.alert("Success", "Profile updated successfully!");
     } catch (error) {
       console.error("Error saving profile:", error);
-      Alert.alert(
-        "Error",
-        error.message || "Failed to update profile. Please try again."
-      );
+      Alert.alert("Error", error.message || "Failed to update profile.");
     } finally {
       setLoading(false);
     }
@@ -232,7 +217,7 @@ const EditProfilePage = ({ route, navigation }) => {
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       {/* Header */}
-      <View style={[styles.header]}>
+      <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.headerButton}
@@ -243,7 +228,6 @@ const EditProfilePage = ({ route, navigation }) => {
         <Text style={[styles.headerTitle, { color: colors.text }]}>
           Edit Profile
         </Text>
-
         <View style={styles.headerButton} />
       </View>
 
@@ -258,31 +242,20 @@ const EditProfilePage = ({ route, navigation }) => {
         />
 
         {[
-          {
-            label: "First Name",
-            key: "firstName",
-            placeholder: "Enter first name",
-          },
-          {
-            label: "Last Name",
-            key: "lastName",
-            placeholder: "Enter last name",
-          },
-        ].map(({ label, key, placeholder }) => (
+          { label: "First Name", key: "firstName" },
+          { label: "Last Name", key: "lastName" },
+        ].map(({ label, key }) => (
           <View style={styles.inputGroup} key={key}>
             <Text style={[styles.inputLabel, { color: colors.textTertiary }]}>
-              {label} <Text style={{ color: colors.error }}></Text>
+              {label}
             </Text>
             <TextInput
               style={[
                 styles.textInput,
-                {
-                  backgroundColor: colors.surface,
-                  color: colors.text,
-                },
+                { backgroundColor: colors.surface, color: colors.text },
               ]}
               value={editForm[key]}
-              placeholder={placeholder}
+              placeholder={`Enter ${label.toLowerCase()}`}
               placeholderTextColor={colors.textSecondary}
               onChangeText={(text) =>
                 setEditForm((prev) => ({ ...prev, [key]: text }))
@@ -296,7 +269,7 @@ const EditProfilePage = ({ route, navigation }) => {
         ))}
       </ScrollView>
 
-      {/* Save */}
+      {/* Save Button */}
       <View
         style={[styles.bottomContainer, { backgroundColor: colors.background }]}
       >

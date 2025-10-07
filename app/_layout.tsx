@@ -1,10 +1,10 @@
 import { StatusBar } from "expo-status-bar";
 import React from "react";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import ThemeProvider from "./contexts/ThemeContext";
+import LoadingScreen from "../components/LoadingScreen";
+import { AuthProvider, useAuth } from "../contexts/AuthContext";
+import ThemeProvider from "../contexts/ThemeContext";
 import AppNavigator from "./navigation/AppNavigator";
 import AuthNavigator from "./navigation/AuthNavigator";
-import LoadingScreen from "./screens/LoadingScreen";
 
 function RootNavigator() {
   const { token, loading } = useAuth();

@@ -1,6 +1,6 @@
-import { useAuth } from "@/app/contexts/AuthContext";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Alert, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 const LogoutBtn = () => {

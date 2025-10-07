@@ -1,5 +1,5 @@
-import { useAuth } from "@/app/contexts/AuthContext";
-import React, { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,

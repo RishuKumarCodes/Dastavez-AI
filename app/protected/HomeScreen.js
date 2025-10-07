@@ -74,12 +74,10 @@ const HomeScreen = () => {
         },
       });
 
-      const history = await response.json(); // read once
-      console.log("Status:", response.status);
-      console.log("Fetched chat history:", history);
+      const history = await response.json();
 
       const formattedMessages = history.map((msg) => ({
-        id: msg._id, // use _id instead of index
+        id: msg._id,
         text: msg.content,
         isUser: msg.role === "user",
         timestamp: new Date(msg.timestamp),
@@ -216,7 +214,6 @@ const HomeScreen = () => {
       )}
 
       {/* Chat Messages */}
-      {console.log(messages)}
       <FlatList
         ref={flatListRef}
         data={messages}

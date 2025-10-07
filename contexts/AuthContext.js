@@ -16,21 +16,18 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   // const BACKEND = Config.BACKEND_URL || "https://eduhaven-backend.onrender.com";
-  const BACKEND = Config.BACKEND_URL || "https://dastavezai-backend-797326917118.asia-south2.run.app";
+  const BACKEND =
+    Config.BACKEND_URL ||
+    "https://dastavezai-backend-797326917118.asia-south2.run.app";
 
   useEffect(() => {
     checkAuthState();
-    console.log("🔥 Config object:", Config);
-    console.log("backend url", BACKEND);
   }, []);
 
   const checkAuthState = async () => {
     try {
       const userToken = await getToken();
-      if (userToken) {
-        setToken(userToken);
-        console.log(userToken);
-      }
+      if (userToken) setToken(userToken);
     } catch (error) {
       console.error("Error checking auth state:", error);
     } finally {
@@ -110,7 +107,6 @@ export const AuthProvider = ({ children }) => {
       let data;
       try {
         data = JSON.parse(text);
-        console.log(data);
       } catch (_) {
         throw new Error(text);
       }
@@ -147,11 +143,7 @@ export const AuthProvider = ({ children }) => {
         },
         body: JSON.stringify({ email }),
       });
-
-      console.log("forgotPassword status:", res.status);
       const data = await res.json();
-      console.log("forgotPassword response:", data);
-
       if (!res.ok) {
         throw new Error(data.message || `Status ${res.status}`);
       }
@@ -186,7 +178,6 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify({ email, otp, newPassword, confirmPassword }),
     });
     const data = await res.json();
-    console.log(data);
     if (!res.ok) throw new Error(data.message);
     return { success: true };
   };

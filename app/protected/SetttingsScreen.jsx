@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
 import LogoutBtn from "../../components/settings/LogoutBtn.jsx";
-import ProfileHeader from "../../components/settings/ProfileHeader";
+import ProfileHeader from "../../components/settings/ProfileHeader.jsx";
 import SettingsItem from "../../components/settings/SettingsItem.jsx";
 import SettingsSection from "../../components/settings/SettingsSection.jsx";
 import ThemeSelector from "../../components/settings/ThemeSelector.jsx";
-import { useAuth } from "../../contexts/AuthContext";
-import { useTheme } from "../../contexts/ThemeContext";
+import { useAuth } from "../../contexts/AuthContext.js";
+import { useTheme } from "../../contexts/ThemeContext.js";
 
 const SettingsPage = ({ navigation }) => {
   const { theme } = useTheme();
@@ -128,9 +128,7 @@ const SettingsPage = ({ navigation }) => {
               )
             }
           />
-        </SettingsSection>
 
-        <SettingsSection title="Subscription">
           <SettingsItem
             iconName="crown-outline"
             title={
@@ -155,45 +153,11 @@ const SettingsPage = ({ navigation }) => {
               )
             }
           />
-          <SettingsItem
-            iconName="card-outline"
-            title="Payment History"
-            subtitle="View your transaction history"
-            iconColor={colors.primary}
-            onPress={() =>
-              Alert.alert("Payment History", "Transaction history coming soon!")
-            }
-          />
         </SettingsSection>
 
         {/* Appearance Section */}
         <SettingsSection title="Appearance">
           <ThemeSelector />
-        </SettingsSection>
-
-        <SettingsSection title="Notifications">
-          <SettingsItem
-            iconName="notifications-outline"
-            title="Push Notifications"
-            subtitle="Get notified about responses"
-            iconColor={colors.primary}
-            hasSwitch
-            switchValue={notifications.push}
-            onSwitchChange={(v) =>
-              setNotifications({ ...notifications, push: v })
-            }
-          />
-          <SettingsItem
-            iconName="mail-outline"
-            title="Email Notifications"
-            subtitle="Receive updates via email"
-            iconColor={colors.secondary}
-            hasSwitch
-            switchValue={notifications.email}
-            onSwitchChange={(v) =>
-              setNotifications({ ...notifications, email: v })
-            }
-          />
         </SettingsSection>
 
         <SettingsSection title="Support & Legal">

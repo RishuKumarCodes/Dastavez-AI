@@ -1,10 +1,9 @@
-import { useAuth } from "@/app/contexts/AuthContext";
 import { Feather, Octicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { Alert } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
-
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+const BACKEND = "https://dastavezai-backend-797326917118.asia-south2.run.app";
 
 const Header = ({ setMessages }) => {
   const navigation = useNavigation();
@@ -24,7 +23,7 @@ const Header = ({ setMessages }) => {
           onPress: async () => {
             try {
               const response = await fetch(
-                `${BACKEND}/api/chat/clear?soft=true`,
+                `${BACKEND}/api/chat/clear`,
                 {
                   method: "DELETE",
                   headers: {

@@ -1,6 +1,6 @@
 import AppleLogo from "@/assets/icons/AppleLogo.tsx";
 import GoogleLogo from "@/assets/icons/GoogleLogo.tsx";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
