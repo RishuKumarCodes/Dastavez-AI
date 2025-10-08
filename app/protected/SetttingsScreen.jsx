@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import LogoutBtn from "../../components/settings/LogoutBtn.jsx";
 import ProfileHeader from "../../components/settings/ProfileHeader.jsx";
 import SettingsItem from "../../components/settings/SettingsItem.jsx";
@@ -27,13 +28,6 @@ const SettingsPage = ({ navigation }) => {
 
   const [loading, setLoading] = useState(true);
 
-  const [notifications, setNotifications] = useState({
-    push: true,
-    email: false,
-    sms: true,
-  });
-
-  // Fetch user profile data
   useEffect(() => {
     fetchUserProfile();
   }, []);

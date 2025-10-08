@@ -1,9 +1,9 @@
+import { BACKEND } from "@/constants/backend";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Config from "react-native-config";
+import { SafeAreaView } from "react-native-safe-area-context";
 import ChangeProfile from "../../components/settings/ChangeProfile";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -21,9 +21,6 @@ const EditProfilePage = ({ route, navigation }) => {
   const { colors } = theme;
   const { user, onSave } = route.params;
   const { token } = useAuth();
-  const BACKEND =
-    Config.BACKEND_URL ||
-    "https://dastavezai-backend-797326917118.asia-south2.run.app";
 
   const [editForm, setEditForm] = useState({
     firstName: user?.firstName || "",

@@ -6,7 +6,7 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 
@@ -28,25 +28,6 @@ const ChatInput = ({
 
   const sendMessage = async () => {
     if (!inputText.trim() && !uploadedFile) return;
-
-    // Check message limits for free users
-    // if (
-    //   userInfo.subscriptionStatus === "free" &&
-    //   userInfo.remainingMessages <= 0
-    // ) {
-    //   Alert.alert(
-    //     "Message Limit Reached",
-    //     "You've reached your free message limit. Upgrade to Premium for unlimited messages.",
-    //     [
-    //       { text: "Cancel", style: "cancel" },
-    //       {
-    //         text: "Upgrade",
-    //         onPress: () => navigation.navigate("Subscription"),
-    //       },
-    //     ]
-    //   );
-    //   return;
-    // }
 
     const userMessage = {
       id: Date.now().toString(),

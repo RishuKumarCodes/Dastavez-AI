@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -40,6 +41,21 @@ const HomeScreen = () => {
   useEffect(() => {
     fetchChatHistory();
     fetchUserInfo();
+  }, []);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, () => {
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {});
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }, []);
 
   const fetchUserInfo = async () => {
@@ -213,26 +229,26 @@ const HomeScreen = () => {
         </View>
       )}
 
-      {/* Chat Messages */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <RenderMessages item={item} />}
-        contentContainerStyle={styles.chatContainer}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }
-        keyboardShouldPersistTaps="handled"
-        style={{ flex: 1 }}
-        ListEmptyComponent={<EmptyState setInputText={setInputText} />}
-      />
-
       <KeyboardAvoidingView
+        style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0} // adjust for header + status bar
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
+        {/* Chat Messages */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <RenderMessages item={item} />}
+          contentContainerStyle={styles.chatContainer}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
+          keyboardShouldPersistTaps="handled"
+          ListEmptyComponent={<EmptyState setInputText={setInputText} />}
+        />
+
         {/* File Upload Preview */}
         {uploadedFile && (
           <View
@@ -257,6 +273,7 @@ const HomeScreen = () => {
           </View>
         )}
 
+        {/* Chat Input */}
         <ChatInput
           inputText={inputText}
           setInputText={setInputText}
@@ -287,8 +304,10 @@ const styles = {
     marginTop: 16,
     fontSize: 16,
   },
+  keyboardView: {
+    flex: 1,
+  },
 
-  // Message Limit Bar
   messageLimit: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -307,18 +326,17 @@ const styles = {
     fontWeight: "600",
   },
 
-  // Chat container
   chatContainer: {
     padding: 16,
     flexGrow: 1,
   },
 
-  // File Upload Preview
   uploadPreview: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     margin: 16,
+    marginBottom: 0,
     padding: 12,
     borderRadius: 8,
   },
@@ -331,31 +349,6 @@ const styles = {
     marginLeft: 8,
     fontSize: 14,
     flex: 1,
-  },
-
-  // ChatInput
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 12,
-    margin: 7,
-    overflow: "hidden",
-    borderRadius: 24,
-  },
-  textInput: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    maxHeight: 100,
-    fontSize: 16,
-  },
-  sendButton: {
-    marginRight: 7,
-    width: 38,
-    height: 38,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
   },
 };
 

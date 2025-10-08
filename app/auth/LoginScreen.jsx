@@ -5,12 +5,12 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Logo } from "../../components/Logo";
 import { useTheme } from "../../contexts/ThemeContext";
 import AuthStyles from "./AuthStyling.jsx";

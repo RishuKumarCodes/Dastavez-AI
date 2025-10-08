@@ -1,0 +1,1 @@
+export const BACKEND = "https://dastavezai-backend-797326917118.asia-south2.run.app";

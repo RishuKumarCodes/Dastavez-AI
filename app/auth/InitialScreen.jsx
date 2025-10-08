@@ -1,36 +1,40 @@
-import AppleLogo from "@/assets/icons/AppleLogo.tsx";
 import GoogleLogo from "@/assets/icons/GoogleLogo.tsx";
+import { BACKEND } from "@/constants/backend";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import Config from "react-native-config";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AnimatedStars from "../../components/GoldenStarsAnimation";
 
 import { MainLogo } from "../../components/Logo";
 import { useTheme } from "../../contexts/ThemeContext";
 import AuthStyles from "./AuthStyling.jsx";
+
 export default function InitialScreen({ navigation }) {
   const { theme } = useTheme();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const BACKEND = Config.BACKEND_URL || "https://dastavezai-backend-797326917118.asia-south2.run.app";
 
   const handleContinue = async () => {
+    setLoading(true);
     if (!email.trim()) {
       Alert.alert("Validation", "Please enter your email.");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
+    // small delay to ensure UI shows loading state
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
     try {
       const res = await fetch(`${BACKEND}/api/auth/check-email`, {
         method: "POST",
@@ -42,7 +46,7 @@ export default function InitialScreen({ navigation }) {
         throw new Error(`Server responded with status ${res.status}`);
       }
 
-      const { exists, message } = await res.json();
+      const { exists } = await res.json();
       if (exists) {
         navigation.navigate("Login", { email: email.trim() });
       } else {
@@ -110,14 +114,19 @@ export default function InitialScreen({ navigation }) {
             <TouchableOpacity
               style={[
                 AuthStyles.primaryButton,
-                { backgroundColor: theme.colors.secondary },
+                {
+                  backgroundColor: theme.colors.secondary,
+                  opacity: loading ? 0.6 : 1,
+                },
               ]}
               onPress={handleContinue}
               disabled={loading}
             >
-              <Text style={AuthStyles.primaryButtonText}>
-                {loading ? "Please wait…" : "Continue →"}
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={AuthStyles.primaryButtonText}>Continue →</Text>
+              )}
             </TouchableOpacity>
 
             <View style={styles.orRow}>
@@ -141,20 +150,19 @@ export default function InitialScreen({ navigation }) {
                 styles.socialButton,
                 { borderColor: theme.colors.border },
               ]}
+              disabled={loading}
             >
               <GoogleLogo />
               <Text style={styles.socialBtnTxt}>Continue with Google</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[
-                styles.socialButton,
-                { borderColor: theme.colors.border },
-              ]}
+            {/* <TouchableOpacity
+              style={[styles.socialButton, { borderColor: theme.colors.border }]}
+              disabled={loading}
             >
               <AppleLogo color={theme.colors.text} />
               <Text style={styles.socialBtnTxt}>Continue with Apple</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </KeyboardAvoidingView>

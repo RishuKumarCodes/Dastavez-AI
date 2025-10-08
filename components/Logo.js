@@ -9,7 +9,7 @@ export function MainLogo() {
     <View style={styles.logoContainer}>
       <Image
         source={LogoImage}
-        style={{ width: 150, height: 150 }}
+        style={{ width: 140, height: 140, marginRight: 15 }}
         resizeMode="contain"
       />
       <Text style={[styles.logoText, { color: theme.colors.text }]}>
@@ -50,13 +50,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   miniLogoContainer: {
-    marginTop: 48,
+    marginVertical: 15,
     marginLeft: 20,
     flexDirection: "row",
     alignItems: "center",
   },
   miniLogoText: {
-    marginLeft: 2,
+    marginLeft: 8,
     fontSize: 19,
     fontWeight: "600",
   },

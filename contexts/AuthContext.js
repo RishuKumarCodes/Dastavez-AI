@@ -1,5 +1,5 @@
+import { BACKEND } from "@/constants/backend";
 import { createContext, useContext, useEffect, useState } from "react";
-import Config from "react-native-config";
 import { getToken, removeToken, saveToken } from "../storage/AuthStorage";
 
 const AuthContext = createContext();
@@ -15,10 +15,6 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
-  // const BACKEND = Config.BACKEND_URL || "https://eduhaven-backend.onrender.com";
-  const BACKEND =
-    Config.BACKEND_URL ||
-    "https://dastavezai-backend-797326917118.asia-south2.run.app";
 
   useEffect(() => {
     checkAuthState();
